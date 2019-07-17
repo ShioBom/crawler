@@ -7,32 +7,32 @@ let ImgDownload = require("./donload.js");
 class Crawler {
     constructor(SeedUrl) {
         this.MAX_CRAW_NUM = 100;
-        this.MAX_MISSION_NUM = 2;
+        this.MAX_MISSION_NUM = 6;
         this.SeedUrl = SeedUrl; //种子url
         this.promiseQueue = [];
         this.urls = []; //解析当前页面爬取到的url数据
         this.images = []; //当前页面爬取到的图片数据
         this.count = 0;
         this.startCrawl = this.startCrawl.bind(this);
-    this.waitAllPromiseOver = this.waitAllPromiseOver.bind(this);
+        this.waitAllPromiseOver = this.waitAllPromiseOver.bind(this);
         this.ImgDownload = new ImgDownload();
         this.urlProcessor = new urlProcessor([SeedUrl])
     }
     getRunningPromise(){
+        console.log(this.promiseQueue);
         return this.promiseQueue.filter(item => !!item);
     }
-    async startCrawl() {
-        let flag=0;
+    async Crawl() {
         for (let i = 0; i < this.MAX_MISSION_NUM;i++) {
             if(this.promiseQueue[i]){
+                console.log("continue");
                 continue;
             }
-            // if(flag = )
             if (this.urlProcessor.hasUrl() && this.count <= this.MAX_CRAW_NUM) {
                 let currentUrl = this.urlProcessor.getUrl();
                 console.log("当前爬取:" + currentUrl)
                 this.count++;
-                 this.promiseQueue[i] =await new Promise((resolve, reject) => {
+                this.promiseQueue[i] =await new Promise((resolve, reject) => {
                     superagent.get(currentUrl).end((err, res) => {
                         if (err) {
                             // 如果访问失败或者出错
@@ -62,28 +62,32 @@ class Crawler {
                     imgs.map(item => item['desc'] = $('h1.inn-singular__post__title').text());//抓取描述
                     this.images = [...new Set(imgs)];
                     this.urls = [...new Set(urls)];
-                    // console.log(imgs);
-                    // console.log("------");
-                    // console.log(urls);
                     this.urlProcessor.addUrl(this.urls);
                     this.ImgDownload.addData(this.images)
                 }).then(() => {
                     this.promiseQueue[i] = null; //爬过的任务promise置为空。
                 }, (err) => {
-                    i++
+                    console.log(err);
                     this.promiseQueue[i] = null;
                 });
             } else {
                 break;
             }
         }
+        
     }
-    waitAllPromiseOver(){
+    async startCrawl(){
+        await this.Crawl();
+        return this.waitAllPromiseOver();
+    }
+    async waitAllPromiseOver(){
         const promiseQueue = this.getRunningPromise();
+        // console.log(promiseQueue);
         if(promiseQueue.length){
-          return Promise.all(promiseQueue).then(this.waitAllPromiseOver);
+          return await Promise.all(promiseQueue).then(this.waitAllPromiseOver);
         }else{
-          return Promise.resolve();//所有页面解析结束，返回一个promise对象
+          //所有页面解析结束，开始下载
+          this.ImgDownload.download();
         }
     }
 }

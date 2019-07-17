@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import './index.css'
+import axios from 'axios';
 import ImageLayout from '../../tool/ImageLayout.js';
 
 class Main extends React.Component {
@@ -8,12 +9,12 @@ class Main extends React.Component {
     }
     render() {
         return(
-            <div className="main-body"><img src='https://dpic1.tiankong.com/8m/xb/QJ6595246433.jpg?x-oss-process=style/240h' alt="图片迷路了"></img></div>
+            <div className="main-body">111<img src='./images/0.gif'/></div>
         )
     }
     componentDidMount(){
         //发送请求,请求json文件数据
-
+        axios.get("")
         //json文件数据里面保存了图片的宽高
 
 
